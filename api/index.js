@@ -24,7 +24,6 @@ const createHeader = (uri, params) => {
     }
 }
 
-// 處理 POST 請求
 app.post('/linepay/request', async (req, res) => {
 
     const requestBody = req.body;
