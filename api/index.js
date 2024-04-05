@@ -2,12 +2,13 @@ const express = require('express');
 const Base64 = require('crypto-js/enc-base64');
 const { HmacSHA256 } = require('crypto-js');
 const axios = require('axios');
-
+const cors = require('cors')
 const app = express();
 const PORT = 3000;
 
 const ChannelSecret = "080c23a52d12238f48e2d38044a2a09d";
 app.use(express.json());
+app.use(cors())
 
 // 處理 POST 請求
 app.post('/linepay/request', async (req, res) => {
