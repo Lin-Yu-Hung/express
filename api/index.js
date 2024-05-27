@@ -10,7 +10,14 @@ const { Server } = require('socket.io');
 const { createServer } = require('node:http');
 // 建立 HTTP 伺服器
 const server = createServer(app);
-const io = new Server(server, { cors: true });
+const io = new Server(server, {
+    cors: {
+        origin: "*", // 或者指定你的前端 URL
+        methods: ["GET", "POST"],
+        allowedHeaders: ["my-custom-header"],
+        credentials: true
+    }
+});
 
 io.on('connection', (socket) => {
     socket.on('joinRoom', (info) => {
