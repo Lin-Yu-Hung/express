@@ -6,22 +6,6 @@
             "destination": "/api"
         }
     ],
-    "builds": [
-        {
-            "src": "index.js",
-            "use": "@vercel/node"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/socket.io/(.*)",
-            "dest": "/index.js"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/"
-        }
-    ],
     "headers": [
         {
             "source": "/api/(.*)",
