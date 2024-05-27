@@ -1,14 +1,24 @@
 {
     "version": 2,
-    "rewrites": [
+    "builds": [
         {
-            "source": "/(.*)",
-            "destination": "/api"
+            "src": "index.js",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/socket.io/(.*)",
+            "dest": "/index.js"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/"
         }
     ],
     "headers": [
         {
-            "source": "/api/(.*)",
+            "source": "/socket.io/(.*)",
             "headers": [
                 {
                     "key": "Access-Control-Allow-Credentials",
