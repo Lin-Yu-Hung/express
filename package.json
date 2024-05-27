@@ -5,8 +5,10 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"start": "node api/index.js"
+		"start": "node api/index.js",
+		"start:dev": "nodemon api/index.js"
 	},
+	"type": "commonjs",
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
@@ -16,6 +18,11 @@
 		"cors": "^2.8.5",
 		"crypto-js": "^4.2.0",
 		"dotenv": "^16.4.1",
-		"express": "^4.18.2"
+		"express": "^4.18.2",
+		"socket.io": "^4.7.5",
+		"socket.io-client": "^4.7.5"
+	},
+	"devDependencies": {
+		"nodemon": "^3.1.1"
 	}
 }

@@ -2,12 +2,33 @@ const express = require('express');
 const Base64 = require('crypto-js/enc-base64');
 const { HmacSHA256 } = require('crypto-js');
 const axios = require('axios');
-const cors = require('cors')
+const cors = require('cors');
 const app = express();
 const PORT = 3000;
 
+const { Server } = require('socket.io');
+const { createServer } = require('node:http');
+// 建立 HTTP 伺服器
+const server = createServer(app);
+const io = new Server(server, { cors: true });
+
+io.on('connection', (socket) => {
+    socket.on('joinRoom', (info) => {
+        const { name, roomId } = info;
+        socket.join(roomId);
+        io.to(roomId).emit('joinFinish', `${name}加入了聊天室!`);
+
+    });
+    socket.on('sendMessage', (messageInfo) => {
+        const { roomId, message } = messageInfo
+        io.to(roomId).emit('returnMessage', message);
+    });
+
+});
+
+
 app.use(express.json());
-app.use(cors())
+app.use(cors());
 
 
 const createHeader = (uri, params) => {
@@ -21,13 +42,12 @@ const createHeader = (uri, params) => {
         'X-LINE-ChannelId': '2004505560',
         'X-LINE-Authorization': hmacDigest,
         "X-LINE-Authorization-Nonce": nonce
-    }
-}
+    };
+};
 
 app.post('/linepay/request', async (req, res) => {
-
     const requestBody = req.body;
-    console.log("🚀  requestBody:", requestBody)
+    console.log("🚀  requestBody:", requestBody);
     const requestUri = "/v3/payments/request";
     const headers = createHeader(requestUri, requestBody);
     try {
@@ -37,9 +57,10 @@ app.post('/linepay/request', async (req, res) => {
         res.status(error.response.status).json(error.response.data);
     }
 });
+
 app.post('/payments/confirm', async (req, res) => {
     const requestBody = req.body;
-    console.log("🚀  requestBody:", requestBody)
+    console.log("🚀  requestBody:", requestBody);
     const { transactionId, amount, currency } = requestBody;
     const requestUri = `/v3/payments/${transactionId}/confirm`;
     const params = { amount, currency };
@@ -52,6 +73,7 @@ app.post('/payments/confirm', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+
+server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
