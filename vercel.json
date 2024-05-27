@@ -24,7 +24,7 @@
     ],
     "headers": [
         {
-            "source": "/socket.io/(.*)",
+            "source": "/api/(.*)",
             "headers": [
                 {
                     "key": "Access-Control-Allow-Credentials",
