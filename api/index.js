@@ -5,7 +5,6 @@ const axios = require('axios');
 const cors = require('cors');
 const app = express();
 const PORT = 3000;
-
 const { Server } = require('socket.io');
 const { createServer } = require('node:http');
 // 建立 HTTP 伺服器
@@ -19,16 +18,47 @@ const io = new Server(server, {
     }
 });
 
+const userService = new Map();
+
+function getRoomSize(roomId) {
+    console.log(io.sockets.adapter.rooms);
+    const room = io.sockets.adapter.rooms.get(roomId);
+    return room ? room.size : 0;
+}
+function roomSizeMsg(roomId) {
+    const roomSize = getRoomSize(roomId);
+    io.to(roomId).emit("roomSize", roomSize);
+}
+
 io.on('connection', (socket) => {
-    socket.on('joinRoom', (info) => {
+
+    socket.on('login', (info) => { // 加入聊天室
+        socket.join(socket.id);
+        const { name, roomId } = info;
+        if (!userService.has(`${roomId}${name}`)) {
+            userService.set(`${roomId}${name}`, info)
+            io.to(socket.id).emit('loginStatus', true);
+        } else {
+            io.to(socket.id).emit('loginStatus', false);
+        }
+    });
+    socket.on('joinRoom', (info) => { // 加入聊天室
         const { name, roomId } = info;
         socket.join(roomId);
-        io.to(roomId).emit('joinFinish', `${name}加入了聊天室!`);
+        io.to(roomId).emit('systemMsg', `${name}加入了聊天室!`);
+        roomSizeMsg(roomId)
 
     });
     socket.on('sendMessage', (messageInfo) => {
-        const { roomId, message } = messageInfo
-        io.to(roomId).emit('returnMessage', message);
+        const { userName, roomId, message } = messageInfo
+        io.to(roomId).emit('returnMessage', { userName, message });
+    });
+    socket.on('leaveRoom', (info) => { // 離開聊天室
+        const { name, roomId } = info;
+        userService.delete(`${roomId}${name}`)
+        io.to(roomId).emit('systemMsg', `${name}離開了聊天室!`);
+        socket.leave(roomId);
+        roomSizeMsg(roomId)
     });
 
 });
