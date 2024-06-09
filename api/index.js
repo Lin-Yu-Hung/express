@@ -21,7 +21,6 @@ const io = new Server(server, {
 const userService = new Map();
 
 function getRoomSize(roomId) {
-    console.log(io.sockets.adapter.rooms);
     const room = io.sockets.adapter.rooms.get(roomId);
     return room ? room.size : 0;
 }
@@ -36,7 +35,6 @@ io.on('connection', (socket) => {
         socket.join(socket.id);
         const { name, roomId } = info;
         if (!userService.has(`${roomId}${name}`)) {
-            userService.set(`${roomId}${name}`, info)
             io.to(socket.id).emit('loginStatus', true);
         } else {
             io.to(socket.id).emit('loginStatus', false);
@@ -44,21 +42,30 @@ io.on('connection', (socket) => {
     });
     socket.on('joinRoom', (info) => { // 加入聊天室
         const { name, roomId } = info;
+        userService.set(`${roomId}${name}`, { info, id: socket.id })
         socket.join(roomId);
         io.to(roomId).emit('systemMsg', `${name}加入了聊天室!`);
         roomSizeMsg(roomId)
-
     });
     socket.on('sendMessage', (messageInfo) => {
         const { userName, roomId, message } = messageInfo
         io.to(roomId).emit('returnMessage', { userName, message });
     });
     socket.on('leaveRoom', (info) => { // 離開聊天室
-        const { name, roomId } = info;
-        userService.delete(`${roomId}${name}`)
-        io.to(roomId).emit('systemMsg', `${name}離開了聊天室!`);
-        socket.leave(roomId);
+        const { name, roomId, isReload } = info;
+        const leaveUser = userService.get(`${roomId}${name}`);
+        if (leaveUser && isReload) {
+            // 針對新開視窗做處理
+            // 將停留在原畫面的使用者一併做登出
+            io.to(leaveUser.id).emit('logout');
+            const room = io.sockets.adapter.rooms.get(roomId); // 將強制登出的使用者從room名單中移除
+            room.delete(leaveUser.id)
+        } else {
+            socket.leave(roomId);
+        }
         roomSizeMsg(roomId)
+        io.to(roomId).emit('systemMsg', `${name}離開了聊天室!`);
+        userService.delete(`${roomId}${name}`)
     });
 
 });
@@ -84,7 +91,6 @@ const createHeader = (uri, params) => {
 
 app.post('/linepay/request', async (req, res) => {
     const requestBody = req.body;
-    console.log("🚀  requestBody:", requestBody);
     const requestUri = "/v3/payments/request";
     const headers = createHeader(requestUri, requestBody);
     try {
@@ -97,7 +103,6 @@ app.post('/linepay/request', async (req, res) => {
 
 app.post('/payments/confirm', async (req, res) => {
     const requestBody = req.body;
-    console.log("🚀  requestBody:", requestBody);
     const { transactionId, amount, currency } = requestBody;
     const requestUri = `/v3/payments/${transactionId}/confirm`;
     const params = { amount, currency };
