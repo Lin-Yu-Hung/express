@@ -15,7 +15,7 @@ const io = new Server(server, {
         methods: ["GET", "POST"],
         allowedHeaders: ["my-custom-header"],
         credentials: true
-    }
+    }, addTrailingSlash: false
 });
 
 const userService = new Map();
