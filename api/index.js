@@ -4,7 +4,7 @@ const { HmacSHA256 } = require('crypto-js');
 const axios = require('axios');
 const cors = require('cors');
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const { Server } = require('socket.io');
 const { createServer } = require('node:http');
 // 建立 HTTP 伺服器
